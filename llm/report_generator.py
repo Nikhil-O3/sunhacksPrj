@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 
 def _load_env() -> None:
@@ -20,6 +21,31 @@ def _load_env() -> None:
 
 
 _load_env()
+
+
+def _extract_message_content(response: Any) -> str:
+    choices = getattr(response, "choices", None)
+    if not choices:
+        return ""
+
+    choice = choices[0]
+    if isinstance(choice, dict):
+        message = choice.get("message", {})
+        if isinstance(message, dict):
+            return str(message.get("content") or "").strip()
+        return str(getattr(message, "content", "") or "").strip()
+
+    message = getattr(choice, "message", None)
+    if isinstance(message, dict):
+        return str(message.get("content") or "").strip()
+    return str(getattr(message, "content", "") or "").strip()
+
+
+def _fallback_report(top_risky: list[dict], components: list[dict], reason: str = "") -> str:
+    report = _fake_report(top_risky, components)
+    if reason:
+        report += f"\n\nLLM generation note: {reason}"
+    return report
 
 
 def _build_prompt(top_risky: list[dict], components: list[dict]) -> str:
@@ -86,22 +112,26 @@ def generate_ceo_report(top_risky: list[dict], overview: list[dict], components:
         from groq import Groq
 
         client = Groq(api_key=api_key)
+        model = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant").strip()
         messages = [
             {"role": "system", "content": "You are a concise business report generator for a CEO."},
             {"role": "user", "content": _build_prompt(top_risky, components)},
         ]
         response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model=model,
             messages=messages,
         )
 
-        if hasattr(response, "choices") and response.choices:
-            choice = response.choices[0]
-            if hasattr(choice, "message") and isinstance(choice.message, dict):
-                return choice.message.get("content", _fake_report(top_risky, components)).strip()
-            if isinstance(choice, dict):
-                return choice.get("message", {}).get("content", _fake_report(top_risky, components)).strip()
+        content = _extract_message_content(response)
+        if content:
+            return content
 
-        return _fake_report(top_risky, components)
-    except Exception:
-        return _fake_report(top_risky, components)
+        return _fallback_report(top_risky, components, "Groq returned an empty response.")
+    except ImportError:
+        return _fallback_report(top_risky, components, "Install the groq package to enable API report generation.")
+    except Exception as exc:
+        return _fallback_report(
+            top_risky,
+            components,
+            f"Groq request failed with {type(exc).__name__}. Check GROQ_API_KEY and GROQ_MODEL.",
+        )
