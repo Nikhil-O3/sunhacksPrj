@@ -77,16 +77,23 @@ def analyze_system_components(files: list[dict[str, Any]], repo_root: str | None
 
         complexity_factor = min(1.0, avg_complexity / max_complexity) if max_complexity > 0 else 0.0
 
-        # Health score based on bug resolution rate (80-99 range)
-        # Higher bug resolution rate = higher health score
-        base_health = 80 + (avg_bug_resolution * 19)  # 80-99 range
+        # Health score calculation with more variation
+        # Base score starts at 60, adjusted by multiple factors
+        base_health = 60
 
-        # Adjust based on other factors
-        risk_penalty = avg_risk * 5  # Reduce score by up to 5 points for high risk
-        complexity_penalty = complexity_factor * 3  # Reduce by up to 3 points for high complexity
-        maintainability_bonus = min(1.0, avg_maintainability / 100.0) * 2  # Add up to 2 points for good maintainability
+        # Risk penalty: lower risk = higher score (up to +25 points)
+        risk_bonus = (1.0 - avg_risk) * 25
 
-        health_score = round(max(80.0, min(99.0, base_health - risk_penalty - complexity_penalty + maintainability_bonus)), 1)
+        # Complexity penalty: lower complexity = higher score (up to -15 points)
+        complexity_penalty = complexity_factor * 15
+
+        # Maintainability bonus: higher maintainability = higher score (up to +15 points)
+        maintainability_bonus = min(1.0, avg_maintainability / 100.0) * 15
+
+        # Bug resolution bonus: more bug fixes = higher score (up to +10 points)
+        bug_resolution_bonus = min(1.0, avg_bug_resolution * 2) * 10  # Scale up the bug resolution impact
+
+        health_score = round(max(10.0, min(99.0, base_health + risk_bonus - complexity_penalty + maintainability_bonus + bug_resolution_bonus)), 1)
 
         component_scores.append(
             {

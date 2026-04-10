@@ -85,19 +85,34 @@ def build_pdf(report_text: str, components: list[dict], top_risky: list[dict], l
 
 st.set_page_config(
     page_title="CodeGuard Pro - Predictive Engineering Intelligence",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# Dashboard Header - Always at top
 st.markdown("""
-<div class="app-header">
-    <p class="eyebrow">CodeGuard Pro</p>
-    <h1>Repository Risk Review</h1>
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin-bottom: 20px; color: white; position: sticky; top: 0; z-index: 100;">
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <div style="font-size: 3em; margin-right: 15px;">🛡️</div>
+        <div>
+            <h1 style="margin: 0; font-size: 2.5em; font-weight: 700;">CodeGuard Pro</h1>
+            <p style="margin: 5px 0 0 0; font-size: 1.2em; opacity: 0.9;">Predictive Engineering Intelligence Platform</p>
+        </div>
+    </div>
+    <p style="margin: 10px 0 0 0; font-size: 1em; line-height: 1.4;">
+        Multi-agent AI system analyzing code repositories for predictive risk assessment,
+        failure prediction, and business impact analysis.
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
 CARD_STYLES = """
 <style>
+body {
+    background-color: #f8fafc;
+    color: #1e293b;
+}
 .app-header {
     border-bottom: 1px solid rgba(30, 41, 59, 0.16);
     margin-bottom: 18px;
@@ -121,57 +136,108 @@ CARD_STYLES = """
 .card,
 .prediction-card {
     background: #ffffff;
-    border: 1px solid rgba(17, 24, 39, 0.14);
-    border-radius: 8px;
-    box-shadow: none;
-    color: #111827;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: #1e293b;
     margin: 8px 0;
-    padding: 12px;
-    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    padding: 16px;
+    transition: all 0.2s ease;
 }
 .card:hover,
 .prediction-card:hover {
-    border-color: #2563eb;
-    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.10);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
     transform: translateY(-2px);
 }
 .card-title {
-    color: #111827;
-    font-size: 14px;
+    color: #1e293b;
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     overflow-wrap: anywhere;
 }
 .card-value {
-    color: #111827;
-    font-size: 20px;
+    color: #0f172a;
+    font-size: 24px;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 .card-subtitle {
-    color: #4b5563;
-    font-size: 12px;
+    color: #64748b;
+    font-size: 13px;
     margin-bottom: 4px;
     overflow-wrap: anywhere;
 }
-.card-green {border-left: 4px solid #16a34a;}
-.card-yellow {border-left: 4px solid #ca8a04;}
-.card-red {border-left: 4px solid #dc2626;}
-.card-blue {border-left: 4px solid #2563eb;}
+.card-green {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+.card-yellow {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+.card-red {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+}
+.card-blue {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
 .prediction-card strong {
-    color: #111827;
+    color: #1e293b;
 }
 .prediction-meta {
-    color: #4b5563;
+    color: #64748b;
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 8px;
 }
 .prediction-card ul {
-    color: #374151;
+    color: #475569;
     margin: 4px 0;
     padding-left: 20px;
+}
+.stButton>button {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    padding: 12px 24px;
+    transition: all 0.2s ease;
+}
+.stButton>button:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+}
+.stTextInput>div>div>input {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    transition: border-color 0.2s ease;
+}
+.stTextInput>div>div>input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.stSubheader {
+    color: #1e293b;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+}
+.stMetric {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 </style>
 """
@@ -219,32 +285,6 @@ if st.button("Analyze Repository"):
             if not files:
                 st.warning("No file data was returned. The repository may be empty or not accessible.")
             else:
-                # Language Distribution Pie Chart
-                if languages.get('languages'):
-                    st.subheader("Language Distribution")
-                    lang_data = languages['languages']
-
-                    # Create pie chart using plotly
-                    try:
-                        import plotly.express as px
-                        import pandas as pd
-
-                        df = pd.DataFrame({
-                            'Language': list(lang_data.keys()),
-                            'Percentage': list(lang_data.values())
-                        })
-
-                        fig = px.pie(df, values='Percentage', names='Language',
-                                   title=f"Repository Language Distribution ({languages.get('total_lines', 0)} total lines)",
-                                   color_discrete_sequence=px.colors.qualitative.Set3)
-                        fig.update_traces(textposition='inside', textinfo='percent+label')
-                        st.plotly_chart(fig, use_container_width=True)
-                    except ImportError:
-                        # Fallback to simple text display
-                        st.info("Install plotly for interactive charts: `pip install plotly`")
-                        for lang, pct in lang_data.items():
-                            st.write(f"**{lang}**: {pct}%")
-
                 st.subheader("Component Health")
                 if components:
                     for i in range(0, len(components), 4):  # Changed from 3 to 4 columns for smaller cards
@@ -312,25 +352,6 @@ if st.button("Analyze Repository"):
                         </div>
                         """, unsafe_allow_html=True)
 
-                # Cost Analysis
-                if cost_analysis:
-                    st.subheader("Cost of Inaction")
-
-                    cost_cols = st.columns(3)
-                    with cost_cols[0]:
-                        st.metric("Estimated Developer Hours", f"{cost_analysis.get('estimated_hours', 0):.1f}h")
-                    with cost_cols[1]:
-                        st.metric("Developer Cost", f"${cost_analysis.get('developer_cost', 0):,.2f}")
-                    with cost_cols[2]:
-                        st.metric("Total Cost", f"${cost_analysis.get('total_cost', 0):,.2f}")
-
-                    with st.expander("Detailed Cost Breakdown"):
-                        breakdown = cost_analysis.get('cost_breakdown', {})
-                        st.write(f"**Prevention Savings:** ${breakdown.get('prevention_savings', 0):,.2f}")
-                        st.write(f"**Detection Cost:** ${breakdown.get('detection_cost', 0):,.2f}")
-                        st.write(f"**Recovery Cost:** ${breakdown.get('recovery_cost', 0):,.2f}")
-                        st.write(f"**Hourly Rate Used:** ${cost_analysis.get('hourly_rate_used', 75):.2f}/hour")
-
                 st.markdown("---")
                 st.subheader("Risk Summary")
                 left, right = st.columns([2, 1])
@@ -362,6 +383,33 @@ if st.button("Analyze Repository"):
                 st.markdown("---")
                 st.subheader("Business Impact Report")
                 st.text_area("Report", report, height=360)
+
+                # Language Distribution Pie Chart - Moved to bottom
+                if languages.get('languages'):
+                    st.markdown("---")
+                    st.subheader("Language Distribution")
+                    lang_data = languages['languages']
+
+                    # Create pie chart using plotly
+                    try:
+                        import plotly.express as px
+                        import pandas as pd
+
+                        df = pd.DataFrame({
+                            'Language': list(lang_data.keys()),
+                            'Percentage': list(lang_data.values())
+                        })
+
+                        fig = px.pie(df, values='Percentage', names='Language',
+                                   title=f"Repository Language Distribution ({languages.get('total_lines', 0)} total lines)",
+                                   color_discrete_sequence=px.colors.qualitative.Set3)
+                        fig.update_traces(textposition='inside', textinfo='percent+label')
+                        st.plotly_chart(fig, use_container_width=True)
+                    except ImportError:
+                        # Fallback to simple text display
+                        st.info("Install plotly for interactive charts: `pip install plotly`")
+                        for lang, pct in lang_data.items():
+                            st.write(f"**{lang}**: {pct}%")
 
                 pdf_bytes = build_pdf(report, components, top_risky, languages, predictions, cost_analysis)
                 if pdf_bytes:

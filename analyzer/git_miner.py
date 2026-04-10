@@ -143,10 +143,9 @@ def analyze_git_history(repo_path: str) -> list[dict]:
 
         rows = []
         for stat in file_stats.values():
-            # Calculate bug resolution rate (bugs fixed vs total changes)
-            bug_resolution_rate = 0.0
-            if stat["total_changes"] > 0:
-                bug_resolution_rate = min(1.0, stat["bug_fixes"] / max(1, stat["total_changes"] / 100))  # Normalize
+            # Calculate bug resolution rate (bugs fixed vs total commits)
+            # This gives a value from 0 to 1+ indicating how often this file is involved in bug fixes
+            bug_resolution_rate = stat["bug_fixes"] / max(1, stat["commits"])
 
             rows.append(
                 {
