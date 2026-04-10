@@ -1,0 +1,76 @@
+import os
+import shutil
+import subprocess
+import tempfile
+
+from analyzer.git_miner import analyze_git_history
+from analyzer.metrics import compute_code_metrics
+from analyzer.risk_model import build_risk_report
+from llm.report_generator import generate_ceo_report
+
+
+def clone_repo(repo_url: str, dest_dir: str) -> str:
+    if not repo_url or not isinstance(repo_url, str):
+        raise ValueError("Repository URL is required.")
+    if not repo_url.startswith("https://github.com/"):
+        raise ValueError("Only GitHub repository URLs are supported.")
+    if shutil.which("git") is None:
+        raise RuntimeError("git is required but not installed.")
+
+    repo_dir = os.path.join(dest_dir, "repo")
+    result = subprocess.run(
+        ["git", "clone", repo_url, repo_dir],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to clone repository: {result.stderr.strip()}")
+    return repo_dir
+
+
+def analyze_repository(repo_url: str) -> dict:
+    temp_dir = tempfile.mkdtemp(prefix="pei_repo_")
+    try:
+        repo_dir = clone_repo(repo_url.strip(), temp_dir)
+        files_data = analyze_git_history(repo_dir)
+        if not files_data:
+            raise ValueError("Repository contains no analyzed files or commit history.")
+
+        enriched = []
+        for item in files_data:
+            file_path = os.path.join(repo_dir, item["file_path"])
+            complexity, maintainability = compute_code_metrics(file_path)
+            enriched.append(
+                {
+                    **item,
+                    "complexity": complexity,
+                    "maintainability": maintainability,
+                }
+            )
+
+        risk_report = build_risk_report(enriched)
+        top_risky = risk_report[:3]
+        report = generate_ceo_report(top_risky, risk_report)
+
+        return {
+            "files": risk_report,
+            "top_risky": top_risky,
+            "report": report,
+        }
+    finally:
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception:
+            pass
+
+
+if __name__ == "__main__":
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description="Analyze a GitHub repository for engineering risk.")
+    parser.add_argument("repo_url", help="GitHub repository URL")
+    args = parser.parse_args()
+
+    output = analyze_repository(args.repo_url)
+    print(json.dumps(output, indent=2))
