@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import tempfile
 
+from analyzer.components import analyze_system_components
 from analyzer.git_miner import analyze_git_history
 from analyzer.metrics import compute_code_metrics
 from analyzer.risk_model import build_risk_report
@@ -49,12 +50,14 @@ def analyze_repository(repo_url: str) -> dict:
             )
 
         risk_report = build_risk_report(enriched)
+        component_health = analyze_system_components(risk_report, repo_dir)
         top_risky = risk_report[:3]
-        report = generate_ceo_report(top_risky, risk_report)
+        report = generate_ceo_report(top_risky, risk_report, component_health)
 
         return {
             "files": risk_report,
             "top_risky": top_risky,
+            "components": component_health,
             "report": report,
         }
     finally:

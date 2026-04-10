@@ -18,10 +18,16 @@ streamlit run frontend/app.py
 
 1. Enter a GitHub repository URL.
 2. Click `Analyze Repository`.
-3. The app shows a risk table, top 3 risky files, and a CEO-style impact report.
+3. The app shows:
+   - a file-level risk table,
+   - system component health scores,
+   - top 3 risky files,
+   - a CEO-style business impact report.
+4. Click `Download Report as PDF` to save the report locally.
 
 ## Notes
 
 - Set `GROQ_API_KEY` in the `.env` file or your shell environment to enable Groq report generation.
 - If no API key is present, the platform returns a local fallback report.
+- The system health section applies real repository analysis heuristics to infer subsystems such as DB, AI/ML, Processing, Authentication, UI, and UX.
 - The repository is cloned locally for analysis and removed after execution.

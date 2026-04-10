@@ -30,7 +30,12 @@ def analyze_git_history(repo_path: str) -> list[dict]:
                     },
                 )
                 stat["commits"] += 1
-                stat["churn"] += (getattr(mod, "added", 0) or 0) + (getattr(mod, "removed", 0) or 0)
+                churn_added = getattr(mod, "added_lines", None)
+                churn_removed = getattr(mod, "deleted_lines", None)
+                if churn_added is None or churn_removed is None:
+                    churn_added = getattr(mod, "added", 0) or 0
+                    churn_removed = getattr(mod, "removed", 0) or 0
+                stat["churn"] += churn_added + churn_removed
                 stat["contributors"].add(author_key)
                 if stat["last_commit_date"] is None or commit.committer_date > stat["last_commit_date"]:
                     stat["last_commit_date"] = commit.committer_date
