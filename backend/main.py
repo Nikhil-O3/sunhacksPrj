@@ -4,8 +4,9 @@ import subprocess
 import tempfile
 
 from analyzer.components import analyze_system_components
-from analyzer.git_miner import analyze_git_history
-from analyzer.metrics import compute_code_metrics
+from analyzer.git_miner import analyze_git_history, analyze_languages
+from analyzer.metrics import compute_code_metrics_detail
+from analyzer.predictive_model import predict_90_day_risks, estimate_cost_of_inaction
 from analyzer.risk_model import build_risk_report
 from llm.report_generator import generate_ceo_report
 
@@ -40,17 +41,19 @@ def analyze_repository(repo_url: str) -> dict:
         enriched = []
         for item in files_data:
             file_path = os.path.join(repo_dir, item["file_path"])
-            complexity, maintainability = compute_code_metrics(file_path)
+            metrics = compute_code_metrics_detail(file_path)
             enriched.append(
                 {
                     **item,
-                    "complexity": complexity,
-                    "maintainability": maintainability,
+                    **metrics,
                 }
             )
 
         risk_report = build_risk_report(enriched)
         component_health = analyze_system_components(risk_report, repo_dir)
+        language_stats = analyze_languages(repo_dir)
+        predictions = predict_90_day_risks(enriched, component_health)
+        cost_analysis = estimate_cost_of_inaction(predictions['predictions'])
         top_risky = risk_report[:3]
         report = generate_ceo_report(top_risky, risk_report, component_health)
 
@@ -58,6 +61,9 @@ def analyze_repository(repo_url: str) -> dict:
             "files": risk_report,
             "top_risky": top_risky,
             "components": component_health,
+            "languages": language_stats,
+            "predictions": predictions,
+            "cost_analysis": cost_analysis,
             "report": report,
         }
     finally:

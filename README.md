@@ -30,5 +30,6 @@ streamlit run frontend/app.py
 - Set `GROQ_API_KEY` in the `.env` file or your shell environment to enable Groq report generation.
 - Optionally set `GROQ_MODEL` to override the default Groq model (`llama-3.1-8b-instant`).
 - If no API key is present, the platform returns a local fallback report.
-- The system health section applies real repository analysis heuristics to infer subsystems such as DB, AI/ML, Processing, Authentication, UI, and UX.
+- The system health section only shows components detected from repository paths or source keywords, such as DB, Processing, Authentication, UI, and UX.
+- Python complexity and maintainability are calculated with Radon, including the function/class line ranges used for complexity scoring.
 - The repository is cloned locally for analysis and removed after execution.

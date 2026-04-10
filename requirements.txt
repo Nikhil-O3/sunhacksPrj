@@ -3,3 +3,5 @@ pydriller>=0.12
 radon>=5.0
 groq>=0.1.0
 fpdf>=1.7.2
+plotly>=5.0
+pandas>=1.0

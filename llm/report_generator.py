@@ -52,14 +52,18 @@ def _build_prompt(top_risky: list[dict], components: list[dict]) -> str:
     top_lines = []
     for item in top_risky:
         top_lines.append(
-            f"- {item['file']}: risk {item['risk_score']}, complexity {item['complexity']}, churn {item['churn']}"
+            f"- {item['file']}: risk {item['risk_score']}, complexity {item['complexity']}, churn {item['churn']}, "
+            f"Radon focus: {item.get('radon_focus_summary') or 'no Python blocks scored'}"
         )
 
     component_lines = []
     for item in components:
         component_lines.append(
-            f"- {item['component']}: health {item['health_score']} / 100, matched files {item['matched_files']}, avg risk {item['avg_risk']}"
+            f"- {item['component']}: health {item['health_score']} / 100, matched files {item['matched_files']}, "
+            f"avg risk {item['avg_risk']}, evidence files {item.get('files', [])}"
         )
+    if not component_lines:
+        component_lines.append("- No known system components were detected from repository paths or source keywords.")
 
     return (
         "You are a senior technical advisor writing a detailed business report for a CEO.\n"
@@ -69,8 +73,10 @@ def _build_prompt(top_risky: list[dict], components: list[dict]) -> str:
         "The system also contains these component health scores:\n"
         + "\n".join(component_lines)
         + "\n\n"
-        "Provide an executive summary, explain the main technical risks in business terms, estimate a hypothetical financial impact, "
-        "and recommend corrective actions for each component. Keep the language executive-friendly, constructive, and concise."
+        "Provide an executive summary, explain the main technical risks in business terms, mention the Radon line ranges used for "
+        "complexity scoring, estimate a hypothetical financial impact, and recommend corrective actions only for detected components. "
+        "Do not invent DB, Authentication, UI, UX, or Processing sections if they were not detected. Keep the language "
+        "executive-friendly, constructive, and concise."
     )
 
 
@@ -80,22 +86,28 @@ def _fake_report(top_risky: list[dict], components: list[dict]) -> str:
         report_lines.append(
             f"- {item['file']} (risk {item['risk_score']}, complexity {item['complexity']}, churn {item['churn']})"
         )
+        report_lines.append(f"  Radon focus: {item.get('radon_focus_summary') or 'no Python blocks scored'}")
 
     report_lines.append("")
-    report_lines.append("System component health scores:")
-    for item in components:
-        report_lines.append(
-            f"- {item['component']}: health {item['health_score']} / 100, matched files {item['matched_files']}, avg risk {item['avg_risk']}"
-        )
+    report_lines.append("Detected system component health scores:")
+    if components:
+        for item in components:
+            files = ", ".join(item.get("files", [])) or "no file evidence recorded"
+            report_lines.append(
+                f"- {item['component']}: health {item['health_score']} / 100, matched files {item['matched_files']}, avg risk {item['avg_risk']}"
+            )
+            report_lines.append(f"  Evidence files: {files}")
+    else:
+        report_lines.append("- No known system components were detected from repository paths or source keywords.")
 
     report_lines.extend(
         [
             "",
             "Executive summary:",
             "This repository analysis surfaces the most risky files and system components that could affect project delivery.",
-            "Lower health scores indicate areas that deserve immediate attention, while higher scores reflect more stable subsystems.",
+            "Lower health scores indicate detected areas that deserve attention, while absent components are intentionally not scored.",
             "Estimated impact: poor component health can increase support costs, slow releases, and raise operational risk.",
-            "Recommended actions: prioritize the top risky files, improve maintainability in weak components, and strengthen testing around DB, authentication, and UI flows.",
+            "Recommended actions: prioritize the top risky files, improve maintainability in detected weak components, and add tests around the Radon-highlighted line ranges.",
         ]
     )
     return "\n".join(report_lines)
